@@ -34,7 +34,7 @@ export function FullDemo({ initialMessage }: FullDemoProps) {
     const welcomeMessage: Message = {
       id: Date.now(),
       sender: 'AI Assistant',
-      content: 'Welcome to ChatGenius! I'm your AI assistant. How can I help you today?',
+      content: 'Welcome to ChatGenius! I\'m your AI assistant. How can I help you today?',
       timestamp: new Date(),
       isAI: true,
     }
