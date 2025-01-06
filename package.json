@@ -2,6 +2,9 @@
   "name": "chatgenius",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "workspaces": [
     "client",
     "server",
@@ -13,7 +16,9 @@
     "dev:server": "yarn workspace server dev",
     "test": "yarn workspaces run test",
     "lint": "yarn workspaces run lint",
-    "build": "yarn workspaces run build"
+    "build": "yarn workspaces run build",
+    "migrate": "yarn workspace server migrate",
+    "migrate:create": "node -e \"require('fs').writeFileSync('server/db/migrations/' + Date.now() + '_migration.sql', '')\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
