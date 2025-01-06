@@ -1,0 +1,119 @@
+Tech Stack
+Backend: Node.js with Express.js
+Database: PostgreSQL
+Frontend: React.js
+Authentication: JSON Web Tokens (JWT)
+Version Control: Git using feature branching with protected main branches
+Deployment: Docker
+Real-Time Communication: WebSockets using Socket.io
+File Storage: AWS S3
+AI Integration: (Planned for future development)
+Code Quality and Standards
+Style Guide: Use ESLint with the Airbnb style guide
+Code Formatting: Use Prettier for consistent code formatting
+Type Checking: JavaScript (TypeScript can be considered in future updates)
+Documentation: Use JSDoc for inline code documentation
+API Documentation: Use Swagger/OpenAPI for documenting RESTful APIs
+Testing:
+Unit Testing: Use Jest for both frontend and backend tests
+End-to-End Testing: Use Cypress
+Project Structure: Include an e2e folder at the root level, alongside client and server, for Cypress tests
+Development Workflow
+Git Workflow:
+Use feature branching for development
+Merge into the main branch via pull requests with required code reviews
+Continuous Integration (CI):
+Implement CI pipelines using GitHub Actions
+Automated testing and linting on each push/merge to main branches
+Include End-to-End Tests: Configure CI to run Cypress tests located in the e2e folder
+Environment Setup:
+Use Docker and Docker Compose for local development and deployment
+Manage environment variables securely using dotenv
+Precision in User Requirements
+Strictly adhere to specified user flow and messaging rules.
+Strategy: Outline the message handling process and API endpoints with business logic in pseudocode before coding.
+Strategic Planning with Pseudocode
+Begin each feature with detailed pseudocode.
+Example: Provide pseudocode for real-time message delivery, detailing steps from message creation to notification delivery.
+Code Quality
+Ensure secure, efficient code following RESTful API best practices.
+Implement proper error handling and input validation using libraries like express-validator.
+All code must pass ESLint and Prettier checks before committing.
+Consistent code formatting is required for maintainability.
+User Flow
+Users browse available Workspaces
+Join existing Workspaces or create new ones
+Create/join Channels within Workspaces
+Send messages and interact in Channels/Direct Messages
+Admin manages Workspace settings and permissions
+Workspace Management
+Each user can belong to multiple Workspaces
+Workspaces contain Channels and Direct Messages
+Users have different roles: Admin, Member, Guest
+Workspace settings control member permissions
+Channel Management
+Users can create public or private Channels
+Channel creators become Channel admins
+Members can join public Channels freely
+Private Channels require an invitation
+Message Handling
+Users can send text, emoji, and file attachments
+Messages can be edited within a time limit
+Messages can be threaded for conversations
+Real-time updates using WebSocket connections via Socket.io
+Notifications and Status
+Users receive notifications for mentions
+Online/offline status tracking
+Message read/unread status
+Typing indicators in real-time
+Key Implementation Points
+Track user presence with WebSocket connections
+Implement message queue for offline delivery (using tools like Redis if necessary)
+Create separate tables in PostgreSQL for Workspaces, Channels, Messages
+Handle file uploads with AWS S3 integration
+Implement Role-Based Access Control (RBAC)
+Manage real-time events (typing, online status) via WebSockets
+Message Features
+Edit history tracking
+Thread management
+Reaction system (emoji responses)
+File attachment handling
+Message formatting with Markdown support using a parser like Marked
+Search and History
+Full-text search across messages using PostgreSQL's search capabilities
+Channel history navigation
+User message history
+Pinned messages in Channels
+Integration Points
+WebSocket server using Socket.io for real-time features
+File storage service integration with AWS S3
+Push notification service (to be implemented if within scope)
+Message formatting parser using Marked for Markdown support
+Security Considerations
+Use HTTPS with SSL/TLS for secure data transmission
+Secure JWT handling with refresh tokens and expiration policies
+Implement input validation and sanitization to prevent security vulnerabilities
+Store sensitive information securely (e.g., passwords hashed with bcrypt)
+Ensure compliance with data protection regulations where applicable
+Repository Structure and Management
+Organize code into the following directories at the root level:
+client - Contains the React.js frontend code
+server - Contains the Node.js backend code
+e2e - Contains Cypress End-to-End tests
+Include comprehensive README files with setup and deployment instructions for each directory
+Maintain a CHANGELOG for documenting major changes and updates
+Use .gitignore files to exclude unnecessary files from version control
+Ensure consistent directory structure across development environments
+Additional Notes
+Instant Onboarding:
+Implement a demo chat server allowing visitors to participate without requiring user information
+Use temporary guest sessions with limited capabilities
+AI Integration:
+AI features (e.g., AI avatars) are planned for future development phases
+Testing and Quality Assurance:
+Aim for 80% code coverage in unit tests
+Write tests for critical functionalities before implementing features (Test-Driven Development where feasible)
+Use Cypress in the e2e folder for end-to-end testing of user flows
+Deployment:
+Prepare Dockerfiles for both development and production environments
+Ensure the application can be deployed smoothly using Docker Compose
