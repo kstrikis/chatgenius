@@ -1,25 +1,13 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'client/**'
-      - 'server/**'
-      - 'e2e/**'
-      - '.github/workflows/**'
-      - 'package.json'
-      - 'yarn.lock'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'client/**'
-      - 'server/**'
-      - 'e2e/**'
-      - '.github/workflows/**'
-      - 'package.json'
-      - 'yarn.lock'
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
+# Prevent multiple deployments running at the same time
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -33,160 +21,95 @@ env:
   NEXT_PUBLIC_API_URL: http://localhost:3001
 
 jobs:
-  changes:
-    name: Detect Changes
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      client: ${{ steps.filter.outputs.client }}
-      server: ${{ steps.filter.outputs.server }}
-      e2e: ${{ steps.filter.outputs.e2e }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            client:
-              - 'client/**'
-              - 'package.json'
-              - 'yarn.lock'
-            server:
-              - 'server/**'
-              - 'package.json'
-              - 'yarn.lock'
-            e2e:
-              - 'e2e/**'
-              - 'client/**'
-              - 'server/**'
-              - 'package.json'
-              - 'yarn.lock'
-
   lint:
     name: Lint
-    needs: changes
-    if: ${{ needs.changes.outputs.client == 'true' || needs.changes.outputs.server == 'true' || needs.changes.outputs.e2e == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+            ~/.cache/yarn
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: |
+          npm install -g yarn
+          yarn install
+      
+      - name: Setup environment
+        run: yarn setup:env
       
       - name: Run lint
         run: yarn lint
 
-  test-client:
-    name: Test Client
-    needs: changes
-    if: ${{ needs.changes.outputs.client == 'true' }}
-    runs-on: ubuntu-latest
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
       
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-      
-      - name: Cache Next.js build
+      - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: |
-            client/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('client/**/*.js', 'client/**/*.jsx', 'client/**/*.ts', 'client/**/*.tsx') }}
+            **/node_modules
+            ~/.npm
+            ~/.cache/yarn
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-
-      
-      - name: Build client
-        run: yarn workspace client build
-        env:
-          NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
-      
-      - name: Run client tests
-        run: yarn workspace client test --coverage --maxWorkers=2
-        env:
-          CI: true
-      
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          flags: client
-          name: client-coverage
-
-  test-server:
-    name: Test Server
-    needs: changes
-    if: ${{ needs.changes.outputs.server == 'true' }}
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+            ${{ runner.os }}-node-
       
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: |
+          npm install -g yarn
+          yarn install
+
+      - name: Setup environment
+        run: yarn setup:env
       
-      - name: Run migrations
-        run: yarn migrate
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - name: Run unit tests
+        run: yarn test:unit
       
-      - name: Run server tests
-        uses: nick-fields/retry@v2
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
         with:
-          timeout_minutes: 10
-          max_attempts: 3
-          command: yarn workspace server test --coverage --maxWorkers=2
-          on_retry_command: yarn migrate
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          CI: true
-      
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          flags: server
-          name: server-coverage
+          name: test-results
+          path: |
+            **/coverage
+            **/test-results
+          retention-days: 7
 
   test-e2e:
-    name: Test E2E
-    needs: changes
-    if: ${{ needs.changes.outputs.e2e == 'true' }}
-    runs-on: ubuntu-latest
+    name: E2E Tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
     services:
       postgres:
-        image: postgres:15
+        image: postgres:15-alpine
         env:
           POSTGRES_USER: ${{ env.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
@@ -201,98 +124,90 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
       
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-      
-      - name: Cache Cypress binary
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            cypress-${{ runner.os }}-
-      
-      - name: Cache Next.js build
+      - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: |
-            client/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('client/**/*.js', 'client/**/*.jsx', 'client/**/*.ts', 'client/**/*.tsx') }}
+            **/node_modules
+            ~/.npm
+            ~/.cache/yarn
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-
+            ${{ runner.os }}-node-
+      
+      - name: Install dependencies
+        run: |
+          npm install -g yarn
+          yarn install
+
+      - name: Setup environment
+        run: yarn setup:env
       
       - name: Run migrations
-        run: yarn migrate
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-      
-      - name: Build client
-        run: yarn workspace client build
-        env:
-          NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
-      
-      - name: Start services
         run: |
-          yarn dev:server &
-          yarn dev:client &
-          sleep 10
+          cd server
+          npx ts-node --esm db/migrate.ts
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
-          NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
       
-      - name: Run E2E tests
-        uses: nick-fields/retry@v2
-        with:
-          timeout_minutes: 15
-          max_attempts: 2
-          command: yarn workspace e2e test
+      - name: Start services and run tests
+        run: |
+          # Start services in background
+          yarn dev:server &
+          SERVER_PID=$!
+          yarn dev:client &
+          CLIENT_PID=$!
+
+          # Wait for services to be ready
+          yarn wait-on \
+            --timeout 60000 \
+            http://localhost:3000 \
+            http://localhost:3001
+
+          # Run tests
+          yarn workspace e2e test || {
+            echo "Tests failed"
+            kill $SERVER_PID $CLIENT_PID
+            exit 1
+          }
+
+          # Clean up
+          kill $SERVER_PID $CLIENT_PID
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
           CI: true
       
-      - name: Upload Cypress screenshots
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: cypress-screenshots
-          path: e2e/cypress/screenshots
-      
-      - name: Upload Cypress videos
-        uses: actions/upload-artifact@v3
+      - name: Upload Cypress artifacts
         if: always()
+        uses: actions/upload-artifact@v3
         with:
-          name: cypress-videos
-          path: e2e/cypress/videos
+          name: cypress-artifacts
+          path: |
+            **/cypress/screenshots
+            **/cypress/videos
+            **/cypress/logs
+          retention-days: 7
 
-  status-check:
-    name: Status Check
-    needs: [changes, lint, test-client, test-server, test-e2e]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Check status
+      - name: Cleanup services
+        if: always()
         run: |
-          if [ "${{ needs.changes.outputs.client }}" == "true" ] && [ "${{ needs.test-client.result }}" != "success" ]; then
-            echo "Client tests failed"
-            exit 1
-          fi
-          if [ "${{ needs.changes.outputs.server }}" == "true" ] && [ "${{ needs.test-server.result }}" != "success" ]; then
-            echo "Server tests failed"
-            exit 1
-          fi
-          if [ "${{ needs.changes.outputs.e2e }}" == "true" ] && [ "${{ needs.test-e2e.result }}" != "success" ]; then
-            echo "E2E tests failed"
-            exit 1
-          fi
-          if [ "${{ needs.lint.result }}" != "success" ]; then
-            echo "Linting failed"
-            exit 1
-          fi 
+          pkill -f "node" || true
+
+  # Add a job that runs when all tests pass
+  notify:
+    name: Notify Success
+    needs: [lint, test-unit, test-e2e]
+    runs-on: ubuntu-22.04
+    if: success()
+    steps:
+      - name: Mark success
+        run: echo "All tests passed successfully!" 

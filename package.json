@@ -14,11 +14,18 @@
     "dev": "concurrently \"yarn dev:client\" \"yarn dev:server\"",
     "dev:client": "yarn workspace client dev",
     "dev:server": "yarn workspace server dev",
-    "test": "yarn workspaces run test",
+    "test": "yarn lint && yarn test:unit",
+    "test:unit": "concurrently \"yarn workspace client test\" \"yarn workspace server test\"",
+    "test:unit:client": "yarn workspace client test",
+    "test:unit:server": "yarn workspace server test",
+    "test:e2e": "concurrently -k -s first \"yarn dev\" \"wait-on http://localhost:3000 http://localhost:3001 && yarn workspace e2e test\"",
+    "test:e2e:open": "concurrently -k -s first \"yarn dev\" \"wait-on http://localhost:3000 http://localhost:3001 && yarn workspace e2e test:open\"",
+    "test:all": "yarn test && yarn test:e2e",
     "lint": "yarn workspaces run lint",
     "build": "yarn workspaces run build",
     "migrate": "yarn workspace server migrate",
-    "migrate:create": "node -e \"require('fs').writeFileSync('server/db/migrations/' + Date.now() + '_migration.sql', '')\""
+    "migrate:create": "node -e \"require('fs').writeFileSync('server/db/migrations/' + Date.now() + '_migration.sql', '')\"",
+    "setup:env": "cp client/env.example client/.env && cp server/env.example server/.env"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6",
@@ -35,6 +42,8 @@
     "eslint-plugin-react": "^7",
     "eslint-plugin-react-hooks": "^4",
     "eslint-plugin-tailwindcss": "^3",
-    "prettier": "^3"
+    "prettier": "^3",
+    "start-server-and-test": "^2.0.3",
+    "wait-on": "^7.2.0"
   }
 } 

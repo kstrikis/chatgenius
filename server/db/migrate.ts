@@ -1,89 +1,84 @@
-import 'dotenv/config';
-import { Pool } from 'pg';
+import pg from 'pg';
+const { Pool } = pg;
 import { promises as fs } from 'fs';
-import path from 'path';
+import { join } from 'path';
 
-// Connection to postgres database to create our app database if it doesn't exist
-const postgresPool = new Pool({
-  connectionString: process.env.POSTGRES_URL || 'postgres://postgres:postgres@localhost:5432/postgres'
+// Database configuration
+const pool = new Pool({
+  connectionString:
+    process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/chatgenius',
 });
 
-// Connection to our app database for running migrations
-const appPool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/chatgenius'
-});
+// Migration table name
+const MIGRATIONS_TABLE = 'migrations';
 
-async function createDatabaseIfNotExists() {
-  try {
-    const dbName = 'chatgenius';
-    const result = await postgresPool.query(
-      `SELECT 1 FROM pg_database WHERE datname = $1`,
-      [dbName]
+/**
+ * Creates the migrations table if it doesn't exist
+ */
+async function createMigrationsTable(): Promise<void> {
+  const query = `
+    CREATE TABLE IF NOT EXISTS ${MIGRATIONS_TABLE} (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-
-    if (result.rows.length === 0) {
-      await postgresPool.query(`CREATE DATABASE ${dbName}`);
-      console.log(`Database ${dbName} created successfully`);
-    }
-  } finally {
-    await postgresPool.end();
-  }
+  `;
+  await pool.query(query);
+  // eslint-disable-next-line no-console
+  console.log('Migrations table created or already exists');
 }
 
-async function runMigrations() {
+/**
+ * Executes a SQL file
+ */
+async function executeSqlFile(filePath: string): Promise<void> {
+  const sql = await fs.readFile(filePath, 'utf-8');
+  await pool.query(sql);
+}
+
+/**
+ * Runs all pending migrations
+ */
+async function runMigrations(): Promise<void> {
   try {
-    await createDatabaseIfNotExists();
-
     // Create migrations table if it doesn't exist
-    await appPool.query(`
-      CREATE TABLE IF NOT EXISTS migrations (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    await createMigrationsTable();
 
-    // Read migration files
-    const migrationsDir = path.join(__dirname, 'migrations');
+    // Get list of executed migrations
+    const { rows: executedMigrations } = await pool.query(
+      `SELECT name FROM ${MIGRATIONS_TABLE} ORDER BY executed_at ASC;`,
+    );
+    const executedMigrationNames = executedMigrations.map((row) => row.name);
+
+    // Get list of migration files
+    const migrationsDir = join(process.cwd(), 'db', 'migrations');
     const files = await fs.readdir(migrationsDir);
-    const sqlFiles = files.filter(f => f.endsWith('.sql')).sort();
+    const pendingMigrations = files
+      .filter((file) => file.endsWith('.sql'))
+      .filter((file) => !executedMigrationNames.includes(file))
+      .sort();
 
-    // Run each migration
-    for (const file of sqlFiles) {
-      const result = await appPool.query(
-        'SELECT id FROM migrations WHERE name = $1',
-        [file]
-      );
-
-      if (result.rows.length === 0) {
-        const sql = await fs.readFile(
-          path.join(migrationsDir, file),
-          'utf-8'
-        );
-        
-        await appPool.query('BEGIN');
-        try {
-          await appPool.query(sql);
-          await appPool.query(
-            'INSERT INTO migrations (name) VALUES ($1)',
-            [file]
-          );
-          await appPool.query('COMMIT');
-          console.log(`Migrated: ${file}`);
-        } catch (error) {
-          await appPool.query('ROLLBACK');
-          throw error;
-        }
-      }
+    // Execute pending migrations
+    for (const migration of pendingMigrations) {
+      // eslint-disable-next-line no-console
+      console.log(`Executing migration: ${migration}`);
+      await executeSqlFile(join(migrationsDir, migration));
+      await pool.query(`INSERT INTO ${MIGRATIONS_TABLE} (name) VALUES ($1);`, [migration]);
     }
 
-    console.log('Migrations completed successfully');
+    if (pendingMigrations.length === 0) {
+      // eslint-disable-next-line no-console
+      console.log('No pending migrations');
+    }
   } catch (error) {
-    console.error('Migration failed:', error);
+    console.error('Error running migrations:', error);
     process.exit(1);
   } finally {
-    await appPool.end();
+    await pool.end();
   }
 }
 
-runMigrations(); 
+// Run migrations if this file is executed directly
+if (require.main === module) {
+  runMigrations();
+}

@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { FullDemo } from './full-demo'
-import { FadeTransition } from './fade-transition'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { FullDemo } from './full-demo';
+import { FadeTransition } from './fade-transition';
 
 export function DemoChat() {
-  const [inputMessage, setInputMessage] = useState('')
-  const [showFullDemo, setShowFullDemo] = useState(false)
+  const [inputMessage, setInputMessage] = useState('');
+  const [showFullDemo, setShowFullDemo] = useState(false);
 
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
-      setShowFullDemo(true)
+      setShowFullDemo(true);
     }
-  }
+  };
 
   return (
     <>
@@ -25,16 +25,16 @@ export function DemoChat() {
             <CardTitle>Try ChatGenius</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="mb-4 text-sm text-muted-foreground">
               Type a message and hit send to experience our demo chat with AI!
             </p>
           </CardContent>
           <CardFooter>
-            <form 
+            <form
               onSubmit={(e) => {
-                e.preventDefault()
-                handleSendMessage()
-              }} 
+                e.preventDefault();
+                handleSendMessage();
+              }}
               className="flex w-full space-x-2"
             >
               <Input
@@ -52,6 +52,5 @@ export function DemoChat() {
         {showFullDemo && <FullDemo initialMessage={inputMessage} />}
       </FadeTransition>
     </>
-  )
+  );
 }
-

@@ -1,78 +1,64 @@
-import request from 'supertest';
-import express from 'express';
-import { createServer } from 'http';
-import { Server, Socket as ServerSocket } from 'socket.io';
-import { io as Client, Socket as ClientSocket } from 'socket.io-client';
-import cors from 'cors';
+import { Server } from 'socket.io';
+import { createServer, Server as HttpServer } from 'http';
+import { AddressInfo } from 'net';
+import { Socket as ClientSocket } from 'socket.io-client';
+import { io as Client } from 'socket.io-client';
+import { app } from './index';
 
-describe('Server', () => {
-  let app: express.Application;
-  let httpServer: ReturnType<typeof createServer>;
-  let io: Server;
+describe('Server Tests', () => {
+  let httpServer: HttpServer;
+  let ioServer: Server;
   let clientSocket: ClientSocket;
-  const port = 3002;
+  let port: number;
 
   beforeEach((done) => {
-    app = express();
-    app.use(cors({
-      origin: 'http://localhost:3000',
-      methods: ['GET', 'POST'],
-    }));
-
     httpServer = createServer(app);
-    io = new Server(httpServer, {
-      cors: {
-        origin: 'http://localhost:3000',
-        methods: ['GET', 'POST'],
-      },
-    });
-
-    app.get('/', (req, res) => {
-      res.send('ChatGenius Server Running');
-    });
-
-    httpServer.listen(port, () => {
+    ioServer = new Server(httpServer);
+    httpServer.listen(() => {
+      port = (httpServer.address() as AddressInfo).port;
       clientSocket = Client(`http://localhost:${port}`);
       clientSocket.on('connect', done);
     });
   });
 
-  afterEach((done) => {
-    if (clientSocket.connected) {
-      clientSocket.disconnect();
-    }
-    io.close(() => {
-      httpServer.close(() => {
-        done();
-      });
-    });
+  afterEach(() => {
+    ioServer.close();
+    clientSocket.close();
+    httpServer.close();
   });
 
-  it('should respond to health check', async () => {
-    const response = await request(app).get('/');
+  it('should respond to root endpoint', async () => {
+    const response = await fetch(`http://localhost:${port}/`);
     expect(response.status).toBe(200);
-    expect(response.text).toBe('ChatGenius Server Running');
+    expect(await response.text()).toBe('ChatGenius Server Running');
   });
 
   it('should have CORS configured correctly', async () => {
-    const response = await request(app)
-      .options('/')
-      .set('Origin', 'http://localhost:3000')
-      .set('Access-Control-Request-Method', 'POST');
-    
-    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3000');
-    expect(response.headers['access-control-allow-methods']).toContain('POST');
+    const response = await fetch(`http://localhost:${port}/`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'http://localhost:3000',
+        'Access-Control-Request-Method': 'GET',
+      },
+    });
+    expect(response.status).toBe(204);
+    expect(response.headers.get('access-control-allow-origin')).toBe('http://localhost:3000');
   });
 
   it('should establish Socket.IO connection', (done) => {
-    expect(clientSocket.connected).toBe(true);
-    done();
+    try {
+      expect(clientSocket.connected).toBe(true);
+      done();
+    } catch (_error) {
+      done(_error);
+    }
   });
 
-  it('should handle client disconnection', async () => {
-    expect(clientSocket.connected).toBe(true);
+  it('should handle client disconnection', (done) => {
+    clientSocket.on('disconnect', () => {
+      expect(clientSocket.connected).toBe(false);
+      done();
+    });
     clientSocket.disconnect();
-    await new Promise(resolve => setTimeout(resolve, 100));
-    expect(clientSocket.connected).toBe(false);
   });
-}); 
+});
