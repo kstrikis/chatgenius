@@ -99,7 +99,7 @@ export function FullDemo({ initialMessage }: FullDemoProps) {
   }
 
   return (
-    <div className="w-full max-w-4xl h-[600px] flex">
+    <div className="w-full max-w-4xl h-[600px] flex" data-testid="chat-container">
       <Card className="flex-grow flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-2xl font-bold">ChatGenius</CardTitle>
