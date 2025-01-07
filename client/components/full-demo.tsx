@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -27,6 +27,19 @@ export function FullDemo({ initialMessage }: FullDemoProps) {
   const [username, setUsername] = useState('')
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
+  const simulateResponse = useCallback((userMessage: Message) => {
+    setTimeout(() => {
+      const responseMessage: Message = {
+        id: Date.now(),
+        sender: 'AI Assistant',
+        content: generateAIResponse(userMessage.content),
+        timestamp: new Date(),
+        isAI: true,
+      }
+      setMessages(prevMessages => [...prevMessages, responseMessage])
+    }, 1000)
+  }, [])
+
   useEffect(() => {
     const newUsername = `Guest${Math.floor(Math.random() * 1000)}`
     setUsername(newUsername)
@@ -47,7 +60,7 @@ export function FullDemo({ initialMessage }: FullDemoProps) {
     }
     setMessages([welcomeMessage, initialUserMessage])
     simulateResponse(initialUserMessage)
-  }, [initialMessage])
+  }, [initialMessage, simulateResponse])
 
   useEffect(() => {
     scrollToBottom()
@@ -68,19 +81,6 @@ export function FullDemo({ initialMessage }: FullDemoProps) {
     }
   }
 
-  const simulateResponse = (userMessage: Message) => {
-    setTimeout(() => {
-      const responseMessage: Message = {
-        id: Date.now(),
-        sender: 'AI Assistant',
-        content: generateAIResponse(userMessage.content),
-        timestamp: new Date(),
-        isAI: true,
-      }
-      setMessages(prevMessages => [...prevMessages, responseMessage])
-    }, 1000)
-  }
-
   const generateAIResponse = (userMessage: string) => {
     const responses = [
       `That's an interesting point about "${userMessage}". Can you elaborate?`,
@@ -99,7 +99,7 @@ export function FullDemo({ initialMessage }: FullDemoProps) {
   }
 
   return (
-    <div className="w-full max-w-4xl h-[600px] flex">
+    <div className="w-full max-w-4xl h-[600px] flex" data-testid="chat-container">
       <Card className="flex-grow flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-2xl font-bold">ChatGenius</CardTitle>
