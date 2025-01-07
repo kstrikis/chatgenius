@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build files
+client/.next/
+server/dist/
+**/build/
+**/coverage/
+
+# Cache
+.eslintcache
+**/.cache/
+**/.yarn/
+
+# Configuration files
+*.config.js
+*.config.mjs
+**/jest.setup.js
+
+# Development files
+**/*.min.js
+**/*.bundle.js
+**/*.chunk.js
+**/*.hot-update.js
+**/_buildManifest.js
+**/_ssgManifest.js
+**/webpack-runtime.js
+**/polyfills.js
+**/app-pages-internals.js
+**/vendor-chunks/
+**/static/chunks/
+**/static/development/
+**/static/webpack/ 

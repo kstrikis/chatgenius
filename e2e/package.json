@@ -2,6 +2,7 @@
   "name": "e2e",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "test": "cypress run",
     "test:open": "cypress open",
@@ -9,8 +10,8 @@
   },
   "devDependencies": {
     "@types/node": "^20",
-    "cypress": "^13.6.3",
-    "typescript": "^5",
+    "cypress": "^13.6.4",
+    "typescript": "^5.3.3",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6",
     "eslint-plugin-cypress": "^2.15.1"
