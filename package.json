@@ -25,7 +25,11 @@
     "build": "yarn workspaces run build",
     "migrate": "yarn workspace server migrate",
     "migrate:create": "node -e \"require('fs').writeFileSync('server/db/migrations/' + Date.now() + '_migration.sql', '')\"",
-    "setup:env": "cp client/env.example client/.env && cp server/env.example server/.env"
+    "setup:env": "cp client/env.example client/.env && cp server/env.example server/.env",
+    "act:lint": "act pull_request -e .github/workflows/test-event.json -j lint --container-architecture linux/amd64",
+    "act:unit": "act pull_request -e .github/workflows/test-event.json -j test-unit --container-architecture linux/amd64",
+    "act:e2e": "act pull_request -e .github/workflows/test-event.json -j test-e2e --container-architecture linux/amd64",
+    "act:all": "act pull_request -e .github/workflows/test-event.json --container-architecture linux/amd64"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6",

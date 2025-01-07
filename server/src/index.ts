@@ -12,7 +12,11 @@ const port = process.env.PORT || 3001;
 // Configure CORS
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: [
+      process.env.CLIENT_URL || 'http://localhost:3000',
+      'http://client:3000',
+      'http://localhost:3000',
+    ],
     methods: ['GET', 'POST'],
   }),
 );
@@ -30,7 +34,11 @@ const pool = new Pool({
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: [
+      process.env.CLIENT_URL || 'http://localhost:3000',
+      'http://client:3000',
+      'http://localhost:3000',
+    ],
     methods: ['GET', 'POST'],
   },
 });
@@ -66,8 +74,11 @@ app.use((_req, res) => {
 
 // Start server
 if (process.env.NODE_ENV !== 'test') {
-  httpServer.listen(port, () => {
+  const host = process.env.API_HOST || 'localhost';
+  httpServer.listen({ port: Number(port), host }, () => {
     // eslint-disable-next-line no-console
-    console.log(`Server running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`);
+    console.log(
+      `Server running on ${host}:${port} in ${process.env.NODE_ENV || 'development'} mode`,
+    );
   });
 }

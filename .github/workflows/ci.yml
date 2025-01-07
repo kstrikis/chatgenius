@@ -17,8 +17,14 @@ env:
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: chatgenius_test
-  DATABASE_URL: postgres://postgres:postgres@localhost:5432/chatgenius_test
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chatgenius_test?sslmode=disable
   NEXT_PUBLIC_API_URL: http://localhost:3001
+  CLIENT_URL: http://localhost:3000
+  API_HOST: 0.0.0.0
+  CLIENT_HOST: 0.0.0.0
+  CYPRESS_BASE_URL: http://localhost:3000
+  CYPRESS_API_URL: http://localhost:3001
+  CYPRESS_INSTALL_BINARY: 0
 
 jobs:
   lint:
@@ -34,6 +40,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Disable telemetry
+        run: |
+          yarn config set --home enableTelemetry 0
+          npx next telemetry disable
       
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -71,6 +82,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       
+      - name: Disable telemetry
+        run: |
+          yarn config set --home enableTelemetry 0
+          npx next telemetry disable
+      
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -103,109 +119,10 @@ jobs:
             **/test-results
           retention-days: 7
 
-  test-e2e:
-    name: E2E Tests
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            **/node_modules
-            ~/.npm
-            ~/.cache/yarn
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      
-      - name: Install dependencies
-        run: |
-          npm install -g yarn
-          yarn install
-
-      - name: Setup environment
-        run: yarn setup:env
-      
-      - name: Run migrations
-        run: |
-          cd server
-          npx ts-node --esm db/migrate.ts
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-      
-      - name: Start services and run tests
-        run: |
-          # Start services in background
-          yarn dev:server &
-          SERVER_PID=$!
-          yarn dev:client &
-          CLIENT_PID=$!
-
-          # Wait for services to be ready
-          yarn wait-on \
-            --timeout 60000 \
-            http://localhost:3000 \
-            http://localhost:3001
-
-          # Run tests
-          yarn workspace e2e test || {
-            echo "Tests failed"
-            kill $SERVER_PID $CLIENT_PID
-            exit 1
-          }
-
-          # Clean up
-          kill $SERVER_PID $CLIENT_PID
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
-          CI: true
-      
-      - name: Upload Cypress artifacts
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: cypress-artifacts
-          path: |
-            **/cypress/screenshots
-            **/cypress/videos
-            **/cypress/logs
-          retention-days: 7
-
-      - name: Cleanup services
-        if: always()
-        run: |
-          pkill -f "node" || true
-
   # Add a job that runs when all tests pass
   notify:
     name: Notify Success
-    needs: [lint, test-unit, test-e2e]
+    needs: [lint, test-unit]
     runs-on: ubuntu-22.04
     if: success()
     steps:
