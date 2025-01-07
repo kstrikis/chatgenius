@@ -1,31 +1,26 @@
-import globals from 'globals';
 import js from '@eslint/js';
-import tsParser from '@typescript-eslint/parser';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
+import typescript from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
 import prettier from 'eslint-plugin-prettier';
 
 export default [
+  js.configs.recommended,
   {
-    files: ['src/**/*.ts'],
+    files: ['**/*.ts'],
     languageOptions: {
-      parser: tsParser,
+      parser: typescriptParser,
       parserOptions: {
-        project: './tsconfig.json',
-      },
-      globals: {
-        ...globals.node,
-      },
+        project: './tsconfig.json'
+      }
     },
     plugins: {
-      '@typescript-eslint': tsPlugin,
-      prettier: prettier,
+      '@typescript-eslint': typescript,
+      'prettier': prettier
     },
     rules: {
-      ...js.configs.recommended.rules,
-      ...tsPlugin.configs.recommended.rules,
+      ...typescript.configs.recommended.rules,
       'prettier/prettier': 'error',
-      'no-console': 'warn',
-      'import/prefer-default-export': 'off',
-    },
-  },
+      'no-console': ['error', { allow: ['warn', 'error'] }]
+    }
+  }
 ]; 
