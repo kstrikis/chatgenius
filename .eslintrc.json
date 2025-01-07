@@ -1,0 +1,40 @@
+{
+  "extends": [
+    "airbnb",
+    "airbnb-typescript",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@next/next/recommended",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": ["./tsconfig.json", "./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json"]
+  },
+  "plugins": ["@typescript-eslint", "prettier", "tailwindcss", "cypress"],
+  "rules": {
+    "prettier/prettier": "error",
+    "no-console": "warn",
+    "import/prefer-default-export": "off",
+    "react/react-in-jsx-scope": "off",
+    "tailwindcss/classnames-order": "warn",
+    "tailwindcss/no-custom-classname": "warn",
+    "tailwindcss/no-contradicting-classname": "error"
+  },
+  "settings": {
+    "tailwindcss": {
+      "callees": ["cn", "cva"],
+      "config": "./client/tailwind.config.js"
+    }
+  },
+  "overrides": [
+    {
+      "files": ["e2e/**/*.ts"],
+      "extends": ["plugin:cypress/recommended"],
+      "rules": {
+        "cypress/no-assigning-return-values": "error",
+        "cypress/no-unnecessary-waiting": "error",
+        "cypress/assertion-before-screenshot": "warn"
+      }
+    }
+  ]
+} 
