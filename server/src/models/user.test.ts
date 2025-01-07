@@ -9,7 +9,7 @@ describe('User Model', () => {
     // Create a new pool for testing
     pool = new Pool({
       connectionString:
-        process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/chatgenius_test',
+        process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/chatgenius',
     });
 
     // Run migrations
@@ -170,4 +170,4 @@ describe('User Model', () => {
       await expect(userModel.create(duplicateUser)).rejects.toThrow();
     });
   });
-}); 
+});

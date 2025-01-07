@@ -20,7 +20,7 @@ export default [
     rules: {
       ...typescript.configs.recommended.rules,
       'prettier/prettier': 'error',
-      'no-console': 'warn',
+      'no-console': 'off', // Allow console in e2e tests
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },

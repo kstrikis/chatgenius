@@ -9,9 +9,16 @@
     "start": "node dist/index.js",
     "lint": "eslint .",
     "migrate": "node --loader ts-node/esm db/migrate.ts",
-    "test": "jest",
-    "test:user": "jest src/models/user.test.ts",
-    "create:test-users": "node --loader ts-node/esm src/scripts/create-test-users.ts"
+    "test": "yarn test:setup && yarn test:unit && yarn test:cleanup",
+    "test:all": "jest",
+    "test:unit": "jest 'src/**/*.test.ts'",
+    "test:models": "jest 'src/models/'",
+    "test:user": "jest 'src/models/user.test.ts'",
+    "test:e2e": "jest --config jest.e2e.config.js",
+    "test:setup": "yarn create:test-users",
+    "test:cleanup": "yarn cleanup:test-users",
+    "create:test-users": "node --loader ts-node/esm src/scripts/create-test-users.ts",
+    "cleanup:test-users": "node --loader ts-node/esm src/scripts/cleanup-test-users.ts"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

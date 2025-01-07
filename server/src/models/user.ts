@@ -9,7 +9,10 @@ export const createUserSchema = z.object({
     .string()
     .min(3, 'Username must be at least 3 characters')
     .max(255, 'Username must be at most 255 characters')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
+    .regex(
+      /^[a-zA-Z0-9_-]+$/,
+      'Username can only contain letters, numbers, underscores, and hyphens',
+    ),
   email: z
     .string()
     .email('Invalid email address')
@@ -58,26 +61,19 @@ export class UserModel {
     // Hash password
     const password_hash = await bcrypt.hash(validatedInput.password, UserModel.SALT_ROUNDS);
 
-    // Debug log
-    console.log('Creating user with:', {
-      username: validatedInput.username,
-      email: validatedInput.email,
-      is_guest: validatedInput.is_guest
-    });
-
     // Insert user into database
     const query = `
       INSERT INTO users (username, email, password_hash, is_guest)
       VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
-    console.log('SQL Query:', query);
-    console.log('Values:', [validatedInput.username, validatedInput.email, password_hash, validatedInput.is_guest]);
 
-    const result = await this.pool.query<User>(
-      query,
-      [validatedInput.username, validatedInput.email, password_hash, validatedInput.is_guest],
-    );
+    const result = await this.pool.query<User>(query, [
+      validatedInput.username,
+      validatedInput.email,
+      password_hash,
+      validatedInput.is_guest,
+    ]);
 
     return result.rows[0];
   }
@@ -102,7 +98,9 @@ export class UserModel {
    * Find a user by username
    */
   async findByUsername(username: string): Promise<User | null> {
-    const result = await this.pool.query<User>('SELECT * FROM users WHERE username = $1', [username]);
+    const result = await this.pool.query<User>('SELECT * FROM users WHERE username = $1', [
+      username,
+    ]);
     return result.rows[0] || null;
   }
 
@@ -146,4 +144,4 @@ export class UserModel {
     const result = await this.pool.query('DELETE FROM users WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
-} 
+}
