@@ -18,4 +18,7 @@ export default {
     '/dist/',
     '/e2e/',
   ],
+  testMatch: [
+    '**/*.test.ts',
+  ],
 }; 
