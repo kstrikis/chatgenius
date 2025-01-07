@@ -21,6 +21,20 @@
     "migrate:create": "node -e \"require('fs').writeFileSync('server/db/migrations/' + Date.now() + '_migration.sql', '')\""
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@typescript-eslint/eslint-plugin": "^6",
+    "@typescript-eslint/parser": "^6",
+    "concurrently": "^8.2.2",
+    "eslint": "^8",
+    "eslint-config-airbnb": "^19",
+    "eslint-config-airbnb-typescript": "^17",
+    "eslint-config-prettier": "^9",
+    "eslint-plugin-cypress": "^2.15.1",
+    "eslint-plugin-import": "^2",
+    "eslint-plugin-jsx-a11y": "^6",
+    "eslint-plugin-prettier": "^5",
+    "eslint-plugin-react": "^7",
+    "eslint-plugin-react-hooks": "^4",
+    "eslint-plugin-tailwindcss": "^3",
+    "prettier": "^3"
   }
 } 
