@@ -9,18 +9,25 @@
     "start": "node dist/index.js",
     "lint": "eslint .",
     "migrate": "node --loader ts-node/esm db/migrate.ts",
-    "test": "jest"
+    "test": "jest",
+    "test:user": "jest src/models/user.test.ts",
+    "create:test-users": "node --loader ts-node/esm src/scripts/create-test-users.ts"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
+    "email-validator": "^2.0.4",
     "express": "^4.18.2",
     "pg": "^8.11.3",
-    "socket.io": "^4.7.4"
+    "socket.io": "^4.7.4",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
+    "@types/email-validator": "^1.0.32",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.20",

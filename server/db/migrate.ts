@@ -6,7 +6,7 @@ import { join } from 'path';
 // Database configuration
 const pool = new Pool({
   connectionString:
-    process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/chatgenius',
+    process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/chatgenius_test',
 });
 
 // Migration table name

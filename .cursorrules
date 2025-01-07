@@ -1,7 +1,8 @@
 Tech Stack
-Backend: Node.js with Express.js
+Backend: Node.js 22 with Express.js
 Database: PostgreSQL
 Frontend: React.js
+Language: TypeScript
 Authentication: JSON Web Tokens (JWT)
 Version Control: Git using feature branching with protected main branches
 Deployment: Docker
@@ -117,3 +118,5 @@ Use Cypress in the e2e folder for end-to-end testing of user flows
 Deployment:
 Prepare Dockerfiles for both development and production environments
 Ensure the application can be deployed smoothly using Docker Compose
+When you are ready to commit, run the following commands: yarn test, yarn test:e2e, yarn act, then git add ., git commit, git push, and create a pull request.
+Always use commands that will not remain open in the terminal (use \q or run in background)
