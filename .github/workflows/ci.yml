@@ -16,8 +16,8 @@ env:
   NODE_VERSION: '22'
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
-  POSTGRES_DB: chatgenius_test
-  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chatgenius_test?sslmode=disable
+  POSTGRES_DB: chatgenius
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chatgenius
   NEXT_PUBLIC_API_URL: http://localhost:3001
   CLIENT_URL: http://localhost:3000
   API_HOST: 0.0.0.0

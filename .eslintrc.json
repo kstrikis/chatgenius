@@ -7,10 +7,18 @@
     "prettier"
   ],
   "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": ["./tsconfig.json", "./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json"]
-  },
   "plugins": ["@typescript-eslint", "prettier", "tailwindcss", "cypress"],
+  "parserOptions": {
+    "project": ["./tsconfig.json", "./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json"],
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "jest": true,
+    "es6": true
+  },
   "rules": {
     "prettier/prettier": "error",
     "no-console": "warn",
@@ -18,12 +26,30 @@
     "react/react-in-jsx-scope": "off",
     "tailwindcss/classnames-order": "warn",
     "tailwindcss/no-custom-classname": "warn",
-    "tailwindcss/no-contradicting-classname": "error"
+    "tailwindcss/no-contradicting-classname": "error",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-undef": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ]
   },
   "settings": {
     "tailwindcss": {
       "callees": ["cn", "cva"],
       "config": "./client/tailwind.config.js"
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true
+      }
     }
   },
   "overrides": [
@@ -34,6 +60,18 @@
         "cypress/no-assigning-return-values": "error",
         "cypress/no-unnecessary-waiting": "error",
         "cypress/assertion-before-screenshot": "warn"
+      }
+    },
+    {
+      "files": ["*.config.js", "*.config.mjs", "jest.setup.js"],
+      "env": {
+        "node": true,
+        "browser": true
+      },
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off",
+        "no-undef": "off",
+        "@typescript-eslint/no-explicit-any": "off"
       }
     }
   ]

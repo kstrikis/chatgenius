@@ -13,12 +13,7 @@ export default {
       },
     ],
   },
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-    '/e2e/',
-  ],
   testMatch: [
-    '**/*.test.ts',
+    '**/e2e/**/*.test.ts',
   ],
 }; 
