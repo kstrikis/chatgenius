@@ -6,26 +6,56 @@ import prettier from 'eslint-plugin-prettier';
 
 export default [
   {
-    files: ['src/**/*.ts'],
+    ignores: [
+      'node_modules/**/*',
+      'dist/**/*',
+      'coverage/**/*',
+    ],
+  },
+  js.configs.recommended,
+  {
+    files: ['**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: true,
+        tsconfigRootDir: '.',
+        ecmaVersion: 'latest',
+        sourceType: 'module',
       },
       globals: {
         ...globals.node,
+        ...globals.jest,
       },
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      prettier: prettier,
+      'prettier': prettier,
     },
     rules: {
       ...js.configs.recommended.rules,
       ...tsPlugin.configs.recommended.rules,
-      'prettier/prettier': 'error',
-      'no-console': 'warn',
-      'import/prefer-default-export': 'off',
+      'prettier/prettier': ['error', {
+        singleQuote: true,
+        trailingComma: 'all',
+        printWidth: 100,
+      }],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      '@typescript-eslint/explicit-function-return-type': ['error', {
+        allowExpressions: true,
+        allowTypedFunctionExpressions: true,
+      }],
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
+    },
+  },
+  {
+    files: ['**/*.test.ts', '**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-console': 'off',
     },
   },
 ]; 
